@@ -1,1 +1,3 @@
-# ALEX.GitHub.Helm
+# Introduction
+
+This action builds a docker file and saves it.
