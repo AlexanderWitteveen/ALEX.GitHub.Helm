@@ -6,29 +6,30 @@ inputs:
     description: 'Name of the image'
     required: true
     default: 'name'
-  tag:
-    description: 'tag for the image'
+  version:
+    description: 'version for the Chart/App'
     required: true
-    default: 'latest'
+    default: '0.0.0'
   path:
-    description: 'path for dockerfile folder'
+    description: 'path for helmchart folder'
     required: true
 outputs:
   filename:
     description: 'The name of the docker file'
-    value: ${{ steps.builddockerimage.outputs.filename }}
+    value: ${{ steps.buildhelmpackage.outputs.filename }}
 runs:
   using: 'composite'
   steps:
-    - name: Build Docker image
-      id: builddockerimage
+    - name: Build Helm Package
+      id: buildhelmpackage
       shell: bash
       run: |
-        # Install Helm
-        #wget https://get.helm.sh/helm-v3.9.3-linux-amd64.tar.gz
-        #tar xvf helm-v3.9.3-linux-amd64.tar.gz
-        #sudo mv linux-amd64/helm /usr/local/bin
-        #ls -las
-        #rm helm-v3.4.1-linux-amd64.tar.gz
-        #rm -rf linux-amd64
         helm version
+        sed -i -e 's/1.0.0/${{ inputs.version }}/g' "${{ inputs.path }}/Chart.yaml"
+        echo "---------"
+        cat "${{ inputs.path }}/Chart.yaml"
+        echo "---------"
+        helm lint "${{ inputs.path }}"
+        helm package "${{ inputs.path }}"
+        ls -las
+        echo "filename=${{ inputs.name }}-${{ inputs.version }}.tgz" >> $GITHUB_OUTPUT
